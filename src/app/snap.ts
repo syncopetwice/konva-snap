@@ -1,13 +1,4 @@
-function getDigitCount(number: number) {
-  return Math.max(Math.floor(Math.log10(Math.abs(number))), 0) + 1;
-}
-
-export function getDigit(number: number, n: number) {
-  const location = getDigitCount(number) + 1 - n;
-  return Math.floor((number / Math.pow(10, location - 1)) % 10);
-}
-
-export function getPossibleSnapPoints(config: {
+export function getSnapPoint(config: {
   start: number;
   step: number;
   dimension: number;
@@ -16,25 +7,26 @@ export function getPossibleSnapPoints(config: {
   const end = start + dimension; // Bottom || Right Side
 
   const snaps = new Map<number, number>()
-    .set(1, getDigit(start < step ? 0 : start, 1) * step) // Non-Overlapped Start Snap Point
-    .set(2, getDigit(start < step ? 0 : start, 1) * step + step) // Overlapped Start Snap Point
-    .set(3, getDigit(end < step ? 0 : end - step, 1) * step + step) // Overlapped End Snap Point
-    .set(4, (getDigit(end, 1) + 1) * step); // Non-Overlapped End Snap Point
+    .set(1, start < step ? 0 : Math.abs(start - (start % step))) // Snap 1 Point
+    .set(2, Math.abs(start - (start % step) + step)) // Snap 2 Point
+    .set(3, Math.abs(end - (end % step))) // Snap 3 Point
+    .set(4, Math.abs(end - (end % step)) + step); // Snap 4 Point
 
   const distance = new Map<number, number>()
-    .set(1, Math.abs(start - snaps.get(1)!))
-    .set(2, Math.abs(snaps.get(2)! - start))
-    .set(3, Math.abs(snaps.get(3)! - end))
-    .set(4, Math.abs(snaps.get(4)! - end));
+    .set(1, Math.abs(start - snaps.get(1)!)) // Distance From Snap 1 to Start
+    .set(2, Math.abs(snaps.get(2)! - start)) // Distance From Start to Snap 2
+    .set(3, Math.abs(snaps.get(3)! - end)) // Distance From Snap 3 to End
+    .set(4, Math.abs(snaps.get(4)! - end)); // Distance From End To Snap 4
 
-  const isCloserToStartDirection =
+  const isCloserToStartDirection = // Get The Minimal Distance To Start Or End
     Math.min(distance.get(1)!, distance.get(2)!) <
     Math.min(distance.get(3)!, distance.get(4)!);
 
-  return isCloserToStartDirection
-    ? distance.get(1)! < distance.get(2)!
+  return isCloserToStartDirection // Get The Best Position For Start
+    ? distance.get(1)! < distance.get(2)! // Snap 1 || Snap 2
       ? snaps.get(1)!
       : snaps.get(2)!
-    : (distance.get(4)! < distance.get(3)! ? snaps.get(4)! : snaps.get(3)!) -
-        dimension;
+    : (distance.get(4)! < distance.get(3)! // Snap 3 || Snap 4
+        ? snaps.get(4)!
+        : snaps.get(3)!) - dimension;
 }

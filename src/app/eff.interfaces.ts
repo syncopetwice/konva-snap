@@ -7,11 +7,6 @@ export interface Display {
   h: number;
 }
 
-export interface SnapStopsCoordinates {
-  vertical: Array<number>;
-  horizontal: Array<number>;
-}
-
 export interface GridConfig {
   stage?: Stage;
   layer?: Layer;

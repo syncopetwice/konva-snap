@@ -13,10 +13,10 @@ import { Stage } from 'konva/lib/Stage';
 import { Line } from 'konva/lib/shapes/Line';
 import { Rect } from 'konva/lib/shapes/Rect';
 import { Util } from 'konva/lib/Util';
-import { KonvaNodeEvent, Vector2d } from 'konva/lib/types';
+import { KonvaNodeEvent } from 'konva/lib/types';
 import { KonvaEventObject } from 'konva/lib/Node';
 
-import { Display, GridConfig, SnapStopsCoordinates } from './eff.interfaces';
+import { GridConfig } from './eff.interfaces';
 import { handleDragEnd } from './drag';
 
 @Component({
@@ -30,7 +30,7 @@ export class AppComponent implements AfterViewInit {
 
   private ngZone = inject(NgZone);
 
-  private gridStep: number = 100;
+  private gridStep: number = 30;
 
   private group = new Group({
     draggable: true,
@@ -55,28 +55,19 @@ export class AppComponent implements AfterViewInit {
       this.stage.add(this.layer);
       this.stage.add(this.dragLayer);
 
-      for (let index = 0; index < 1; index++) {
+      for (let index = 0; index < 5; index++) {
         const shape: Rect = new Rect({
           name: 'shape',
-          x: this.gridStep,
-          y: this.gridStep,
-          width: 30,
-          height: 420,
+          x: Math.random() * 10 * 93,
+          y: Math.random() * 10 * 74,
+          width: Math.random() * 10 * 91,
+          height: Math.random() * 10 * 75,
           fill: Util.getRandomColor(),
           draggable: true,
         });
         shape.on(
           KonvaNodeEvent.dragstart,
-          (event: KonvaEventObject<MouseEvent>) => {}
-        );
-        shape.on(
-          KonvaNodeEvent.dragmove,
-          (event: KonvaEventObject<MouseEvent>) => {
-            const display: Display = {
-              w: innerWidth,
-              h: innerHeight,
-            };
-          }
+          (event: KonvaEventObject<MouseEvent>) => event.target.moveToTop()
         );
         shape.on(
           KonvaNodeEvent.dragend,
@@ -151,16 +142,6 @@ export class AppComponent implements AfterViewInit {
     return lines;
   }
 
-  private getLineGuideStops(stage: Stage): SnapStopsCoordinates {
-    var vertical = [0, stage.width() / 2, stage.width()];
-    var horizontal = [0, stage.height() / 2, stage.height()];
-    const snapStopCoordinates = {
-      vertical: vertical.flat(),
-      horizontal: horizontal.flat(),
-    };
-    return snapStopCoordinates;
-  }
-
   public ngAfterViewInit(): void {
     this.initializeStage({ containerId: 'container' });
     this.initializeGrid({
@@ -168,7 +149,6 @@ export class AppComponent implements AfterViewInit {
       layer: this.gridLayer,
       group: this.gridLayerGroup,
     });
-    this.getLineGuideStops(this.stage);
   }
 
   @HostListener('window:resize', ['$event'])
