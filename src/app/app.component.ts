@@ -19,6 +19,7 @@ import { KonvaEventObject } from 'konva/lib/Node';
 import { GridConfig } from './eff.interfaces';
 import { handleDragEnd } from './drag';
 import { getShapeScreenshot } from './getShapeScreenshot';
+import { handleWheel } from './zoom';
 
 @Component({
   selector: 'app-root',
@@ -55,6 +56,10 @@ export class AppComponent implements AfterViewInit {
       });
       this.stage.add(this.layer);
       this.stage.add(this.dragLayer);
+
+      this.stage.on('wheel', (e: KonvaEventObject<WheelEvent>) =>
+        handleWheel({ e, stage: this.stage })
+      );
 
       for (let index = 0; index < 3; index++) {
         const shape: Rect = new Rect({
