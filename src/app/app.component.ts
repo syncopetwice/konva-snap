@@ -66,19 +66,15 @@ export class AppComponent implements AfterViewInit {
           fill: Util.getRandomColor(),
           draggable: true,
         });
-        shape.on(
-          KonvaNodeEvent.dragstart,
-          (event: KonvaEventObject<MouseEvent>) => event.target.moveToTop()
+        shape.on('dragstart', (event: KonvaEventObject<MouseEvent>) =>
+          event.target.moveToTop()
         );
-        shape.on(
-          KonvaNodeEvent.dragend,
-          (event: KonvaEventObject<MouseEvent>) => {
-            handleDragEnd({
-              shape: event.target,
-              step: this.gridStep,
-            });
-          }
-        );
+        shape.on('dragend', (event: KonvaEventObject<MouseEvent>) => {
+          handleDragEnd({
+            shape: event.target,
+            step: this.gridStep,
+          });
+        });
         this.group.add(shape);
         this.layer.add(this.group);
       }
