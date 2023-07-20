@@ -12,17 +12,16 @@ html, body {
   position: absolute;
   top: 50px;
   left: 250px;
+  height: auto;
   .ql-editor {
     height: auto;
-    line-height: inherit;
     padding: 0;
     width: 350px;
-    font-size: 32px;
-    line-height: 1.25;
-    font-family: 'Lato';
+    font-family: inherit;
     overflow: hidden;
+    line-height: inherit;
     color: rgba(255,0.0,0.5);
-    background: rgba(0,0,255,0.25);
+    // background: rgba(0,0,255,0.25);
   }
 }
 
