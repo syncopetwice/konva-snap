@@ -18,6 +18,7 @@ import { KonvaEventObject } from 'konva/lib/Node';
 
 import { GridConfig } from './eff.interfaces';
 import { handleDragEnd } from './drag';
+import { getShapeScreenshot } from './getShapeScreenshot';
 
 @Component({
   selector: 'app-root',
@@ -30,7 +31,7 @@ export class AppComponent implements AfterViewInit {
 
   private ngZone = inject(NgZone);
 
-  private gridStep: number = 30;
+  private gridStep: number = 40;
 
   private group = new Group({
     draggable: true,
@@ -55,13 +56,13 @@ export class AppComponent implements AfterViewInit {
       this.stage.add(this.layer);
       this.stage.add(this.dragLayer);
 
-      for (let index = 0; index < 5; index++) {
+      for (let index = 0; index < 3; index++) {
         const shape: Rect = new Rect({
           name: 'shape',
           x: Math.random() * 10 * 93,
           y: Math.random() * 10 * 74,
-          width: Math.random() * 10 * 91,
-          height: Math.random() * 10 * 75,
+          width: Math.random() * 15 * 80,
+          height: Math.random() * 15 * 40,
           fill: Util.getRandomColor(),
           draggable: true,
         });

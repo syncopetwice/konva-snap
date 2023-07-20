@@ -1,7 +1,8 @@
-
 import { saveAs } from 'file-saver';
+import Konva from 'konva';
+import { KonvaEventObject } from 'konva/lib/Node';
 
-export function screenshotShape(
+export function getShapeScreenshot(
   e: KonvaEventObject<DragEvent | MouseEvent>
 ): Promise<string> {
   return new Promise<string>((resolve, reject) => {
@@ -23,11 +24,13 @@ export function screenshotShape(
     });
     downloadImageFile(image);
     group.destroy();
-    resolve(image),
-    reject(new Error('Cannot get the   shape screenshot'))
+    resolve(image), reject(new Error('Cannot get the shape screenshot'));
   });
 }
 
-export function downloadImageFile(uri: string, filename: string = 'screenshot') {
+export function downloadImageFile(
+  uri: string,
+  filename: string = 'screenshot'
+) {
   saveAs(uri, filename);
 }
