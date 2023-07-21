@@ -66,15 +66,18 @@ export class AppComponent implements AfterViewInit {
           name: 'shape',
           x: Math.random() * 10 * 93,
           y: Math.random() * 10 * 74,
-          width: Math.random() * 15 * 80,
-          height: Math.random() * 15 * 40,
+          width: this.gridStep - 2,
+          height: this.gridStep,
           fill: Util.getRandomColor(),
           draggable: true,
+        });
+        shape.on('click', () => {
+          console.log('Activate Toolbox');
         });
         shape.on('dragstart', (event: KonvaEventObject<MouseEvent>) =>
           event.target.moveToTop()
         );
-        shape.on('dragend', (event: KonvaEventObject<MouseEvent>) => {
+        shape.on('dragmove', (event: KonvaEventObject<MouseEvent>) => {
           handleDragEnd({
             shape: event.target,
             step: this.gridStep,
