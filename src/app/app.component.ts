@@ -21,6 +21,7 @@ import { handleWheel } from './zoom';
 import { Shape } from 'konva/lib/Shape';
 import { getVertices } from './vertices';
 import { Transformer } from 'konva/lib/shapes/Transformer';
+import { getTransformer } from './transformer';
 
 @Component({
   selector: 'app-root',
@@ -57,6 +58,7 @@ export class AppComponent implements AfterViewInit {
 
   private transformer: Transformer = new Transformer({
     name: 'Transformer',
+    ...getTransformer(this.gridStep),
   });
 
   private initializeStage(config: { containerId: string }): void {
@@ -83,6 +85,11 @@ export class AppComponent implements AfterViewInit {
       this.stage.on('wheel', (e: KonvaEventObject<WheelEvent>) =>
         handleWheel({ e, stage: this.stage })
       );
+      this.stage.on('click', (e: KonvaEventObject<MouseEvent>) => {
+        if (e.target === e.target.getStage()) {
+          this.transformer.nodes([]);
+        }
+      });
       this.generateShapes();
       this.layer.add(this.group);
       this.stage.add(this.verticesLayer);

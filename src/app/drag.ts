@@ -6,7 +6,8 @@ import { Group } from 'konva/lib/Group';
 import { Rect, RectConfig } from 'konva/lib/shapes/Rect';
 import { Line, LineConfig } from 'konva/lib/shapes/Line';
 import { Display, Vertices } from './interfaces';
-import { Transformer } from 'konva/lib/shapes/Transformer';
+import { Transformer, TransformerConfig } from 'konva/lib/shapes/Transformer';
+import { getTransformer } from './transformer';
 
 export function handleDragEnd(config: {
   shape: Stage | Shape<ShapeConfig>;
@@ -39,67 +40,8 @@ export function handleClick(config: {
   step: number;
   transformer: Transformer;
 }) {
-  const tolerance: number = 10;
-
-  // config.tr`ansformer.nodes(config.shape);
-
-  const transformer = new Transformer({
-    nodes: [config.shape],
-    rotateEnabled: false,
-    keepRatio: false,
-    anchorStroke: '#7393B3',
-    anchorStrokeWidth: 4,
-    anchorSize: 16,
-    borderEnabled: false,
-    anchorCornerRadius: 16,
-    anchorDragBoundFunc: (prev: any, next: any, e: any) => {
-      let distance = Math.sqrt(
-        Math.pow(next.x - prev.x, 2) + Math.pow(next.y - prev.y, 2)
-      );
-
-      if (distance > tolerance) {
-        return next;
-      }
-
-      const closestX = Math.ceil(next.x / config.step) * config.step;
-      const diffX = Math.ceil(Math.abs(next.x - closestX));
-
-      const closestY = Math.ceil(next.y / config.step) * config.step;
-      const diffY = Math.ceil(Math.abs(next.y - closestY));
-
-      const snappedX = diffX < tolerance;
-      const snappedY = diffY < tolerance;
-
-      // console.group('Anchor Drag Bound');
-      // console.log('distance', distance);
-      // console.log('closestX', closestX);
-      // console.log('diffX', diffX);
-      // console.log('closestY', closestY);
-      // console.log('diffY', diffY);
-      // console.log('snappedX', snappedX);
-      // console.log('snappedY', snappedY);
-      // console.groupEnd();
-
-      if (snappedX && !snappedY) {
-        return {
-          x: closestX,
-          y: prev.y,
-        };
-      } else if (snappedY && !snappedX) {
-        return {
-          x: prev.x,
-          y: closestY,
-        };
-      } else if (snappedX && snappedY) {
-        return {
-          x: closestX,
-          y: closestY,
-        };
-      }
-      return next;
-    },
-  });
-  config.group.add(transformer);
+  config.transformer.nodes([config.shape]);
+  config.group.add(config.transformer);
 }
 
 export function handleDragStart(config: {
@@ -116,8 +58,8 @@ export function handleDragStart(config: {
   }
   const lines = [];
 
-  console.log('V', config.vertices.vertical);
-  console.log('H', config.vertices.horizontal);
+  // console.log('V', config.vertices.vertical);
+  // console.log('H', config.vertices.horizontal);
 
   for (let i = 0; i < [...config.vertices.horizontal].length; i++) {
     lines.push(
@@ -151,7 +93,7 @@ export function handleDragStart(config: {
     );
   }
 
-  config.verticesLayerGroup.add(...lines);
+  // config.verticesLayerGroup.add(...lines);
   config.shape.moveTo(config.dragLayerGroup);
 }
 
