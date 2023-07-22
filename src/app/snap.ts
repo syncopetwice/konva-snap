@@ -1,9 +1,13 @@
+import { Vertices } from './interfaces';
+
 export function getSnapPoint(config: {
   start: number;
   step: number;
   dimension: number;
+  vertices: Vertices;
 }): number {
   const { start, step, dimension } = config;
+
   const end = start + dimension; // Bottom || Right Side
 
   const snaps = new Map<number, number>()

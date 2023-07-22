@@ -12,3 +12,8 @@ export interface GridConfig {
   layer?: Layer;
   group: Group;
 }
+
+export interface Vertices {
+  vertical: Set<number>;
+  horizontal: Set<number>;
+}
