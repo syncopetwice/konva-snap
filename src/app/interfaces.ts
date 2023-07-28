@@ -17,3 +17,17 @@ export interface Vertices {
   vertical: Set<number>;
   horizontal: Set<number>;
 }
+
+export interface Snaps {
+  before: number;
+  prev: number;
+  next: number;
+  after: number;
+}
+
+export interface Distance {
+  fromSnapToStart: number;
+  fromStartToSnap: number;
+  fromSnapToEnd: number;
+  fromEndToSnap: number;
+}

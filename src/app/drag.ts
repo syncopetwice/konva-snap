@@ -19,16 +19,15 @@ export function handleDragEnd(config: {
   config.shape.position({
     x: getSnapPoint({
       start: config.shape.x(),
-      step: config.step,
       dimension: config.shape.width(),
-      vertices: config.vertices,
+      vertices: config.vertices.vertical,
     }),
-    y: getSnapPoint({
-      start: config.shape.y(),
-      step: config.step,
-      dimension: config.shape.height(),
-      vertices: config.vertices,
-    }),
+    y: config.step,
+    // y: getSnapPoint({
+    //   start: config.shape.y(),
+    //   dimension: config.shape.height(),
+    //   vertices: config.vertices.horizontal,
+    // }),
   });
   config.shape.moveTo(config.group);
   config.verticesLayerGroup.destroyChildren();
@@ -71,8 +70,11 @@ export function handleDragStart(config: {
           [...config.vertices.horizontal][i],
         ],
         strokeWidth: 1,
-        stroke: 'red',
-        opacity: 0.75,
+        stroke:
+          [...config.vertices.horizontal][i] === config.display.h / 2
+            ? 'blue'
+            : 'red',
+        opacity: 0.25,
       })
     );
   }
@@ -87,13 +89,16 @@ export function handleDragStart(config: {
           config.display.h,
         ],
         strokeWidth: 1,
-        stroke: 'red',
-        opacity: 0.75,
+        stroke:
+          [...config.vertices.horizontal][i] === config.display.h / 2
+            ? 'blue'
+            : 'red',
+        opacity: 0.25,
       })
     );
   }
 
-  // config.verticesLayerGroup.add(...lines);
+  config.verticesLayerGroup.add(...lines);
   config.shape.moveTo(config.dragLayerGroup);
 }
 

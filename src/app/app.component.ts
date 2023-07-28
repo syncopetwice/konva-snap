@@ -12,14 +12,15 @@ import { Layer } from 'konva/lib/Layer';
 import { Stage } from 'konva/lib/Stage';
 import { Line } from 'konva/lib/shapes/Line';
 import { Rect } from 'konva/lib/shapes/Rect';
+import { Text } from 'konva/lib/shapes/Text';
 import { Util } from 'konva/lib/Util';
-import { KonvaEventObject } from 'konva/lib/Node';
+import { KonvaEventObject, NodeConfig, Node } from 'konva/lib/Node';
 
 import { Display, GridConfig, Vertices } from './interfaces';
 import { handleClick, handleDragEnd, handleDragStart } from './drag';
 import { handleWheel } from './zoom';
 import { Shape } from 'konva/lib/Shape';
-import { getVertices } from './vertices';
+import { getShapesVertices } from './vertices';
 import { Transformer } from 'konva/lib/shapes/Transformer';
 import { getTransformer } from './transformer';
 
@@ -34,7 +35,7 @@ export class AppComponent implements AfterViewInit {
 
   private ngZone = inject(NgZone);
 
-  private gridStep: number = 50;
+  private gridStep: number = 100;
 
   private group = new Group({
     draggable: true,
@@ -63,6 +64,40 @@ export class AppComponent implements AfterViewInit {
 
   private initializeStage(config: { containerId: string }): void {
     this.ngZone.runOutsideAngular(() => {
+      // const editor = new EditorJS({
+      //   holder: 'editorjs',
+      //   autofocus: true,
+      //   placeholder: 'Let`s write an awesome story!',
+      //   inlineToolbar: false,
+      //   hideToolbar: true,
+      //   readOnly: true,
+
+      //   onChange: (api, event) => {
+      //     console.log('Change', api, event);
+      //     editor
+      //       .save()
+      //       .then((outputData) => {
+      //         console.log('Article data: ', outputData);
+      //       })
+      //       .catch((error) => {
+      //         console.log('Saving failed: ', error);
+      //       });
+      //   },
+      //   onReady: () => {
+      //     editor.render({
+      //       blocks: [
+      //         {
+      //           type: 'header',
+      //           data: {
+      //             text: 'Why Telegram is the best messenger',
+      //             level: 2,
+      //           },
+      //         },
+      //       ],
+      //     });
+      //   },
+      // });
+
       const { innerWidth, innerHeight } = window;
       this.display = {
         w: window.innerWidth,
@@ -79,6 +114,7 @@ export class AppComponent implements AfterViewInit {
         layer: this.gridLayer,
         group: this.gridLayerGroup,
       });
+
       this.stage.add(this.layer);
       this.stage.add(this.dragLayer);
 
@@ -86,24 +122,46 @@ export class AppComponent implements AfterViewInit {
         handleWheel({ e, stage: this.stage })
       );
       this.stage.on('click', (e: KonvaEventObject<MouseEvent>) => {
-        if (e.target === e.target.getStage()) {
-          this.transformer.nodes([]);
+        if (this.transformer?.getNodes()?.length) {
+          const [node] = this.transformer?.getNodes();
+          console.log('Node', node.isClientRectOnScreen());
+          if (e.target === e.target.getStage()) {
+            if (
+              !!this.transformer.getNodes().length &&
+              node?.getType() === 'Shape'
+            ) {
+              console.log('Has Transformer On Page');
+            } else {
+              this.transformer.nodes([]);
+            }
+          }
         }
       });
-      this.generateShapes();
+      this.generateShapes({ quantity: 300, step: this.gridStep });
       this.layer.add(this.group);
       this.stage.add(this.verticesLayer);
+      this.vertices.vertical
+        .add(0)
+        .add(this.display.w / 2)
+        .add(this.display.w);
+      this.vertices.horizontal
+        .add(0)
+        .add(this.display.h / 2)
+        .add(this.display.h);
     });
   }
 
-  private generateShapes(): void {
-    for (let index = 0; index < 10; index++) {
+  private generateShapes(config: { quantity: number; step: number }): void {
+    for (let index = 0; index < config.quantity; index++) {
       const shape: Rect = new Rect({
         name: 'Shape',
+        id: `Shape-${index}`,
         x: Math.random() * 10 * 100,
         y: Math.random() * 10 * 100,
-        width: this.gridStep * 2,
-        height: this.gridStep * 3,
+        width: config.step / 2,
+        height: config.step / 2,
+        // x: config.step,
+        // y: config.step,
         fill: Util.getRandomColor(),
         draggable: true,
       });
@@ -111,14 +169,21 @@ export class AppComponent implements AfterViewInit {
         handleClick({
           shape: event.target,
           group: this.group,
-          step: this.gridStep,
+          step: config.step,
           transformer: this.transformer,
         });
       });
       shape.on('dragstart', (event: KonvaEventObject<MouseEvent>) => {
-        const { vertical, horizontal } = getVertices(this.stage.find('.Shape'));
+        let shapes: Node<NodeConfig>[] = this.stage
+          .find('.Shape')
+          .filter((shape) => shape.attrs.id !== event.target.attrs.id)
+          .filter((shape) => shape.isClientRectOnScreen());
+
+        const { vertical, horizontal } = getShapesVertices(shapes);
+
         [...horizontal].map((v) => this.vertices.horizontal.add(v));
         [...vertical].map((v) => this.vertices.vertical.add(v));
+
         handleDragStart({
           shape: event.target,
           dragLayerGroup: this.dragLayerGroup,
@@ -132,7 +197,7 @@ export class AppComponent implements AfterViewInit {
       shape.on('dragend', (event: KonvaEventObject<MouseEvent>) => {
         handleDragEnd({
           shape: event.target,
-          step: this.gridStep,
+          step: config.step,
           group: this.group,
           vertices: this.vertices,
           verticesLayerGroup: this.verticesLayerGroup,
@@ -177,7 +242,8 @@ export class AppComponent implements AfterViewInit {
           name: 'Horizontal',
           points: [0, 0 + index * step, innerWidth, 0 + index * step],
           strokeWidth: 1,
-          stroke: '#c9c9c9',
+          stroke: '#b9b9b9',
+          dash: [8, 8],
         })
       );
       this.vertices.horizontal.add(0 + index * step);
@@ -194,7 +260,8 @@ export class AppComponent implements AfterViewInit {
           name: 'Vertical',
           points: [0 + index * step, 0, 0 + index * step, innerHeight],
           strokeWidth: 1,
-          stroke: '#c9c9c9',
+          dash: [8, 8],
+          stroke: '#b9b9b9',
         })
       );
       this.vertices.vertical.add(0 + index * step);

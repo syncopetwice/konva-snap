@@ -7,7 +7,7 @@ export function getTransformer(step: number): TransformerConfig {
     keepRatio: false,
     anchorStroke: '#7393B3',
     anchorStrokeWidth: 4,
-    anchorSize: 16,
+    anchorSize: 8,
     borderEnabled: false,
     anchorCornerRadius: 16,
     anchorDragBoundFunc: (prev: any, next: any, e: any) => {
