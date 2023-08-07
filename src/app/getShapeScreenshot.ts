@@ -1,26 +1,27 @@
 import { saveAs } from 'file-saver';
 import Konva from 'konva';
-import { KonvaEventObject } from 'konva/lib/Node';
+import { KonvaEventObject, NodeConfig, Node } from 'konva/lib/Node';
+import { ShapeConfig } from 'konva/lib/Shape';
 
-export function getShapeScreenshot(
-  e: KonvaEventObject<DragEvent | MouseEvent>
-): Promise<string> {
+export function getShapeScreenshot(target: Node<NodeConfig>): Promise<string> {
   return new Promise<string>((resolve, reject) => {
-    let clone = e.target.clone();
+    let clone = target.clone();
     let group = new Konva.Group();
     const cr = clone.getClientRect();
     let rect = new Konva.Rect({
-      width: cr.width,
-      height: cr.height,
+      width: clone.clipWidth(),
+      height: clone.clipHeight(),
       x: cr.x,
       y: cr.y,
       fill: '#fff',
     });
     group.add(rect, clone);
     const image = group.toDataURL({
-      pixelRatio: 4,
+      pixelRatio: 1,
       quality: 1,
       mimeType: 'image/png',
+      width: clone.clipWidth(),
+      height: clone.clipHeight(),
     });
     downloadImageFile(image);
     group.destroy();

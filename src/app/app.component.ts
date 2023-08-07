@@ -13,6 +13,7 @@ import { Stage } from 'konva/lib/Stage';
 import { Line } from 'konva/lib/shapes/Line';
 import { Rect } from 'konva/lib/shapes/Rect';
 import { Text } from 'konva/lib/shapes/Text';
+import { Image } from 'konva/lib/shapes/Image';
 import { Util } from 'konva/lib/Util';
 import { KonvaEventObject, NodeConfig, Node } from 'konva/lib/Node';
 
@@ -23,6 +24,7 @@ import { Shape } from 'konva/lib/Shape';
 import { getShapesVertices } from './vertices';
 import { Transformer } from 'konva/lib/shapes/Transformer';
 import { getTransformer } from './transformer';
+import { getImageGroup } from './crop';
 
 @Component({
   selector: 'app-root',
@@ -64,40 +66,6 @@ export class AppComponent implements AfterViewInit {
 
   private initializeStage(config: { containerId: string }): void {
     this.ngZone.runOutsideAngular(() => {
-      // const editor = new EditorJS({
-      //   holder: 'editorjs',
-      //   autofocus: true,
-      //   placeholder: 'Let`s write an awesome story!',
-      //   inlineToolbar: false,
-      //   hideToolbar: true,
-      //   readOnly: true,
-
-      //   onChange: (api, event) => {
-      //     console.log('Change', api, event);
-      //     editor
-      //       .save()
-      //       .then((outputData) => {
-      //         console.log('Article data: ', outputData);
-      //       })
-      //       .catch((error) => {
-      //         console.log('Saving failed: ', error);
-      //       });
-      //   },
-      //   onReady: () => {
-      //     editor.render({
-      //       blocks: [
-      //         {
-      //           type: 'header',
-      //           data: {
-      //             text: 'Why Telegram is the best messenger',
-      //             level: 2,
-      //           },
-      //         },
-      //       ],
-      //     });
-      //   },
-      // });
-
       const { innerWidth, innerHeight } = window;
       this.display = {
         w: window.innerWidth,
@@ -137,7 +105,8 @@ export class AppComponent implements AfterViewInit {
           }
         }
       });
-      this.generateShapes({ quantity: 300, step: this.gridStep });
+      // this.generateShapes({ quantity: 5, step: this.gridStep });
+      this.layer.add(getImageGroup(this.stage));
       this.layer.add(this.group);
       this.stage.add(this.verticesLayer);
       this.vertices.vertical
