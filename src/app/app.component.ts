@@ -37,32 +37,21 @@ export class AppComponent implements AfterViewInit {
 
   private ngZone = inject(NgZone);
 
-  private gridStep: number = 100;
+  public group = new Group({
+    x: 300,
+    y: 40,
+    width: 600,
+    height: 200,
+  });
 
-  private group = new Group({
+  private layer = new Layer();
+
+  private transformer = new Transformer({
     draggable: true,
   });
 
-  private vertices: Vertices = {
-    vertical: new Set(),
-    horizontal: new Set(),
-  };
-
-  private layer = new Layer({}).add(this.group);
-
-  private dragLayerGroup = new Group();
-  private dragLayer = new Layer().add(this.dragLayerGroup);
-
-  private verticesLayerGroup = new Group();
-  private verticesLayer = new Layer().add(this.verticesLayerGroup);
-
   private stage!: Stage;
   private display!: Display;
-
-  private transformer: Transformer = new Transformer({
-    name: 'Transformer',
-    ...getTransformer(this.gridStep),
-  });
 
   private initializeStage(config: { containerId: string }): void {
     this.ngZone.runOutsideAngular(() => {
@@ -77,165 +66,169 @@ export class AppComponent implements AfterViewInit {
         width: innerWidth,
         height: innerHeight,
       });
-      this.initializeGrid({
-        stage: this.stage,
-        layer: this.gridLayer,
-        group: this.gridLayerGroup,
-      });
-
       this.stage.add(this.layer);
-      this.stage.add(this.dragLayer);
-
-      this.stage.on('wheel', (e: KonvaEventObject<WheelEvent>) =>
-        handleWheel({ e, stage: this.stage })
-      );
-      this.stage.on('click', (e: KonvaEventObject<MouseEvent>) => {
-        if (this.transformer?.getNodes()?.length) {
-          const [node] = this.transformer?.getNodes();
-          console.log('Node', node.isClientRectOnScreen());
-          if (e.target === e.target.getStage()) {
-            if (
-              !!this.transformer.getNodes().length &&
-              node?.getType() === 'Shape'
-            ) {
-              console.log('Has Transformer On Page');
-            } else {
-              this.transformer.nodes([]);
-            }
-          }
-        }
-      });
-      // this.generateShapes({ quantity: 5, step: this.gridStep });
-      this.layer.add(getImageGroup(this.stage));
       this.layer.add(this.group);
-      this.stage.add(this.verticesLayer);
-      this.vertices.vertical
-        .add(0)
-        .add(this.display.w / 2)
-        .add(this.display.w);
-      this.vertices.horizontal
-        .add(0)
-        .add(this.display.h / 2)
-        .add(this.display.h);
+      this.addImage(
+        this.group,
+        'https://pbs.twimg.com/media/FB1SrdtXoAMYeiG.jpg'
+      );
+      // this.addImage(
+      //   this.group2,
+      //   'https://pbs.twimg.com/media/FB1SrdtXoAMYeiG.jpg'
+      // );
+      // this.addImage(
+      //   this.group3,
+      //   'https://www.gamereactor.pl/media/68/teamspirittake_4076813.jpg'
+      // );
+      // this.addImage(
+      //   this.group4,
+      //   'https://www.gamereactor.pl/media/68/teamspirittake_4076813.jpg'
+      // );
+      // this.addReferenceImage(this.layer);
     });
   }
 
-  private generateShapes(config: { quantity: number; step: number }): void {
-    for (let index = 0; index < config.quantity; index++) {
-      const shape: Rect = new Rect({
-        name: 'Shape',
-        id: `Shape-${index}`,
-        x: Math.random() * 10 * 100,
-        y: Math.random() * 10 * 100,
-        width: config.step / 2,
-        height: config.step / 2,
-        // x: config.step,
-        // y: config.step,
-        fill: Util.getRandomColor(),
+  public addReferenceImage(layer: Layer): void {
+    Image.fromURL(
+      'https://pbs.twimg.com/media/FB1SrdtXoAMYeiG.jpg',
+      (image: Image) => {
+        image.x(1000);
+        this.layer.add(image);
+      }
+    );
+  }
+
+  public applyCrop(pos: string, image: Image): void {
+    // const img = this.layer.findOne('.image');
+    image.setAttr('lastCropUsed', pos);
+    const crop = this.getCrop(image, {
+      width: image.width(),
+      height: image.height(),
+    });
+    image.setAttrs(crop);
+  }
+
+  public getCrop(image: Image, size: { width: number; height: number }) {
+    const width = size.width;
+    const height = size.height;
+    const aspectRatio = width / height;
+
+    let newWidth;
+    let newHeight;
+
+    const imageRatio = image.width() / image.height();
+
+    if (aspectRatio >= imageRatio) {
+      newWidth = image.width();
+      newHeight = image.width() / aspectRatio;
+    } else {
+      newWidth = image.height() * aspectRatio;
+      newHeight = image.height();
+    }
+
+    let x = 0;
+    let y = 0;
+    x = (image.width() - newWidth) / 2;
+    y = (image.height() - newHeight) / 2;
+
+    return {
+      cropX: x,
+      cropY: y,
+      cropWidth: newWidth,
+      cropHeight: newHeight,
+    };
+  }
+
+  public addImage(group: Group, url: string): void {
+    Image.fromURL(url, (img: Image) => {
+      this.applyCrop('center-middle', img);
+      console.log('Im', img);
+
+      img.setAttrs({
+        name: 'image',
         draggable: true,
       });
-      shape.on('click', (event: KonvaEventObject<MouseEvent>) => {
-        handleClick({
-          shape: event.target,
-          group: this.group,
-          step: config.step,
-          transformer: this.transformer,
-        });
-      });
-      shape.on('dragstart', (event: KonvaEventObject<MouseEvent>) => {
-        let shapes: Node<NodeConfig>[] = this.stage
-          .find('.Shape')
-          .filter((shape) => shape.attrs.id !== event.target.attrs.id)
-          .filter((shape) => shape.isClientRectOnScreen());
 
-        const { vertical, horizontal } = getShapesVertices(shapes);
+      group.add(img);
 
-        [...horizontal].map((v) => this.vertices.horizontal.add(v));
-        [...vertical].map((v) => this.vertices.vertical.add(v));
+      const tr = new Transformer({
+        nodes: [img],
+        keepRatio: false,
+        boundBoxFunc: (oldBox, newBox) => {
+          if (newBox.width < 10 || newBox.height < 10) {
+            return oldBox;
+          }
+          return newBox;
+        },
+      });
 
-        handleDragStart({
-          shape: event.target,
-          dragLayerGroup: this.dragLayerGroup,
-          gridLayerGroup: this.gridLayerGroup,
-          stage: this.stage,
-          display: this.display,
-          vertices: this.vertices,
-          verticesLayerGroup: this.verticesLayerGroup,
+      group.add(tr);
+
+      img.on('transform', () => {
+        // reset scale on transform
+        img.setAttrs({
+          scaleX: 1,
+          scaleY: 1,
+          width: img.width() * img.scaleX(),
+          height: img.height() * img.scaleY(),
         });
+        this.applyCrop(img.getAttr('lastCropUsed'), img);
       });
-      shape.on('dragend', (event: KonvaEventObject<MouseEvent>) => {
-        handleDragEnd({
-          shape: event.target,
-          step: config.step,
-          group: this.group,
-          vertices: this.vertices,
-          verticesLayerGroup: this.verticesLayerGroup,
-        });
-      });
-      this.group.add(shape);
-    }
+
+      // group.add(image);
+    });
   }
 
-  private gridLayer: Layer = new Layer({
-    id: 'Grid Layer',
-  });
+  private getImageAttributes({
+    image,
+    group,
+  }: {
+    image: Image;
+    group: Group;
+  }): {
+    width: number;
+    height: number;
+    x: number;
+    y: number;
+  } {
+    const { width: iw, height: ih } = image.getClientRect();
+    const { width: gw, height: gh } = group.getAttrs();
 
-  private gridLayerGroup: Group = new Group({
-    id: 'Grid Lines',
-  }).add(
-    ...this.getVerticalLines(this.gridStep),
-    ...this.getHorizontalLines(this.gridStep)
-  );
+    if (gw >= gh) {
+      if (iw >= ih) {
+        const sw: number = (iw * gh) / ih;
+        const sh: number = gh;
 
-  private initializeGrid(config: GridConfig): void {
-    if (!config.stage && !config.layer) {
-      config.group.destroyChildren();
-      config.group.add(
-        ...this.getVerticalLines(this.gridStep),
-        ...this.getHorizontalLines(this.gridStep)
-      );
-    } else {
-      const { stage, layer, group } = config;
-      if (stage && layer && group) {
-        stage?.add(layer?.add(group));
+        console.group('Image');
+        console.log('Group', gw, gh);
+        console.log('Image', iw, ih);
+        console.log('Scaled Image', sw, sh);
+        console.groupEnd();
+
+        if (sw >= gw) {
+          return {
+            width: sw,
+            height: sh,
+            x: gw / 2 - sw / 2,
+            y: gh / 2 - sh / 2,
+          };
+        } else {
+          return {
+            width: gw,
+            height: (gh * sw) / sh,
+            x: 0,
+            y: gh / 2 - gh / 2,
+          };
+        }
       }
     }
-  }
 
-  private getHorizontalLines(step: number): any[] {
-    const lines: Line[] = [];
-    const { innerHeight, innerWidth } = window;
-    for (let index = 0; index <= Math.ceil(innerHeight / step); index++) {
-      lines.push(
-        new Line({
-          name: 'Horizontal',
-          points: [0, 0 + index * step, innerWidth, 0 + index * step],
-          strokeWidth: 1,
-          stroke: '#b9b9b9',
-          dash: [8, 8],
-        })
-      );
-      this.vertices.horizontal.add(0 + index * step);
-    }
-    return lines;
-  }
-
-  private getVerticalLines(step: number): any[] {
-    const lines: Line[] = [];
-    const { innerHeight, innerWidth } = window;
-    for (let index = 0; index <= Math.ceil(innerWidth / step); index++) {
-      lines.push(
-        new Line({
-          name: 'Vertical',
-          points: [0 + index * step, 0, 0 + index * step, innerHeight],
-          strokeWidth: 1,
-          dash: [8, 8],
-          stroke: '#b9b9b9',
-        })
-      );
-      this.vertices.vertical.add(0 + index * step);
-    }
-    return lines;
+    return {
+      width: gw,
+      height: gh,
+      x: 0,
+      y: 0,
+    };
   }
 
   public ngAfterViewInit(): void {
@@ -247,9 +240,6 @@ export class AppComponent implements AfterViewInit {
     this.stage.setSize({
       width: window.innerWidth,
       height: window.innerHeight,
-    });
-    this.initializeGrid({
-      group: this.gridLayerGroup,
     });
   }
 }
